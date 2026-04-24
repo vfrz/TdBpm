@@ -2,7 +2,6 @@ using SoundFlow.Backends.MiniAudio;
 using SoundFlow.Midi.PortMidi;
 using SoundFlow.Midi.Routing.Nodes;
 using SoundFlow.Midi.Structs;
-using Timer = System.Timers.Timer;
 
 namespace TdBpm;
 
@@ -14,9 +13,9 @@ public class BpmEngine : IDisposable
 
     private MidiOutputNode? _outputNode;
 
-    private readonly Timer _timer = new();
+    private readonly HighResolutionTimer _timer = new();
 
-    private static readonly MidiMessage ClockMessage = new MidiMessage(0xF8, 0, 0);
+    private static readonly MidiMessage ClockMessage = new(0xF8, 0, 0);
 
     public bool Running { get; private set; }
 
@@ -24,7 +23,7 @@ public class BpmEngine : IDisposable
     {
         _miniAudioEngine = new MiniAudioEngine();
 
-        _timer.Elapsed += (sender, eventArgs) => { _outputNode!.ProcessMessage(ClockMessage); };
+        _timer.Elapsed += (_, _) => { _outputNode!.ProcessMessage(ClockMessage); };
     }
 
     public void Initialize()
@@ -60,7 +59,7 @@ public class BpmEngine : IDisposable
         var startMessage = new MidiMessage(0xFA, 0, 0);
         _outputNode!.ProcessMessage(startMessage);
 
-        _timer.Interval = 60000 / ((double) Bpm * 24);
+        _timer.Interval = 60000 / ((float) Bpm * 24);
 
         _timer.Start();
 
