@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace TdBpm;
+namespace SuperBpm;
 
 /// <summary>
 /// From https://gist.github.com/DraTeots/436019368d32007284f8a12f1ba0f545
@@ -144,7 +144,7 @@ public class HighResolutionTimer
             while (true)
             {
                 elapsed = ElapsedHiRes(stopwatch);
-                double diff = nextTrigger - elapsed;
+                var diff = nextTrigger - elapsed;
                 if (diff <= 0f)
                     break;
 
@@ -162,7 +162,7 @@ public class HighResolutionTimer
             }
 
 
-            double delay = elapsed - nextTrigger;
+            var delay = elapsed - nextTrigger;
             Elapsed?.Invoke(this, new HighResolutionTimerElapsedEventArgs(delay));
 
             if (!_isRunning)

@@ -3,11 +3,17 @@ using SoundFlow.Midi.PortMidi;
 using SoundFlow.Midi.Routing.Nodes;
 using SoundFlow.Midi.Structs;
 
-namespace TdBpm;
+namespace SuperBpm;
 
 public class BpmEngine : IDisposable
 {
-    public int Bpm { get; set; } = 120;
+    public int Bpm
+    {
+        get;
+        set => field = Math.Clamp(value, 30, 300);
+    } = 120;
+    
+    public int RunningBpm { get; private set; } = 120;
 
     private readonly MiniAudioEngine _miniAudioEngine;
 
@@ -17,7 +23,7 @@ public class BpmEngine : IDisposable
 
     private static readonly MidiMessage ClockMessage = new(0xF8, 0, 0);
 
-    public bool Running { get; private set; }
+    public bool Running => _timer.IsRunning;
 
     public BpmEngine()
     {
@@ -49,32 +55,31 @@ public class BpmEngine : IDisposable
 
     public void Restart()
     {
-        if (Running)
+        if (_timer.IsRunning)
         {
             _timer.Stop();
             var stopMessage = new MidiMessage(0xFC, 0, 0);
             _outputNode!.ProcessMessage(stopMessage);
         }
 
+        _timer.Interval = 60000 / ((float) Bpm * 24);
+        RunningBpm = Bpm;
+
         var startMessage = new MidiMessage(0xFA, 0, 0);
         _outputNode!.ProcessMessage(startMessage);
 
-        _timer.Interval = 60000 / ((float) Bpm * 24);
-
         _timer.Start();
-
-        Running = true;
     }
 
     public void Stop()
     {
-        if (!Running)
+        if (!_timer.IsRunning)
             return;
 
         _timer.Stop();
+
         var stopMessage = new MidiMessage(0xFC, 0, 0);
         _outputNode!.ProcessMessage(stopMessage);
-        Running = false;
     }
 
     public void Dispose()
